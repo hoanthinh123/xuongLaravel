@@ -21,95 +21,95 @@ Route::get('/', function () {
 
     //bài tập PHẦN 1: Chuyển đổi câu SQL về Query Builder or Eloquent 
     //1 .Truy vấn kết hợp nhiều bảng (JOIN)
-    $users = DB::table('users', 'u')
-        ->select('u.name', 'SUM(o.amount) as total_spent')
-        ->join('order as o', 'u.id', '=', 'o.user_id')
-        ->groupBy('u.name')
-        ->having('total_spent', '>', 1000)
-        ->toRawSql();
-    dd($users);
+    // $users = DB::table('users', 'u')
+    //     ->select('u.name', 'SUM(o.amount) as total_spent')
+    //     ->join('order as o', 'u.id', '=', 'o.user_id')
+    //     ->groupBy('u.name')
+    //     ->having('total_spent', '>', 1000)
+    //     ->toRawSql();
+    // dd($users);
 
-    // 2. Truy vấn thống kê dựa trên khoảng thời gian (Time-based statistics)
-    $orders = DB::table('orders')
-        ->select('DATE(order_date) as date', 'COUNT(*) as orders_count', 'SUM(total_amount) as total_sales')
-        ->whereBetween('order_date', ['2024-01-01', '2024-09-30'])
-        ->groupBy('DATE(order_date)')
-        ->toRawSql();
-    dd($orders);
-    // 3. Truy vấn để tìm kiếm giá trị không có trong tập kết quả khác (NOT EXISTS)
-    $products = DB::table('products', 'p')
-        ->select('product_name')
-        ->whereNotExists(function (Builder $query) {
-            $query->select('1')
-                ->from('orders', 'o')
-                ->where('o.product_id', '=', 'p.id');
-        })->toRawSql();
-    dd($products);
-    // 4. Truy vấn với CTE (Common Table Expression) em không làm được ạ
-    // 5. Truy vấn lấy danh sách người dùng đã mua sản phẩm trong 30 ngày qua, cùng với thông tin sản phẩm và ngày mua
-    $users = DB::table('users')
-        ->select('users.name', 'products.product_name', 'orders.order_date')
-        ->join('orders', 'users.id', '=', 'orders.user_id')
-        ->join('order_items', 'orders.id', '=', 'order_items.order_id')
-        ->join('products', 'order_items.product_id', '=', 'products.id')
-        ->where('orders.order_day', '>=',  DB::raw('NOW() - INTERVAL 30 DAY'))
-        ->toRawSql();
-    dd($users);
-    //6. Truy vấn lấy tổng doanh thu theo từng tháng, chỉ tính những đơn hàng đã hoàn thành  
-    $orders = DB::table('orders')
-        ->select(DB::raw("DATE_FORMAT(orders.order_date, '%Y-%m') as order_month"), DB::raw('order_items.quantity * order_items.price as total_revenue'))
-        ->join('order_items', 'orders.id', '=', 'order_items.order_id')
-        ->where('orders.status', 'completed')
-        ->groupBy('order_month')
-        ->orderByDesc('order_moth')
-        ->toRawSql();
-    dd($orders);
-    // 7. Truy vấn các sản phẩm chưa từng được bán (sản phẩm không có trong bảng order_items)
-    $products = DB::table('products')
-        ->select('products.product_name')
-        ->leftJoin('order_items', 'products.id', '=', 'order_items.product_id')
-        ->whereNull('order_items.product_id')
-        ->toRawSql();
-    dd($products);
-    // 8.Lấy danh sách các sản phẩm có doanh thu cao nhất cho mỗi loại sản phẩm
-    $products = DB::table('products', 'p')
-        ->select('p.category_id', 'p.product_name', DB::raw("MAX(oi.total) as max_revenue"))
-        ->join(DB::raw('(
-            SELECT product_id, SUM(quantity * price) as total
-            FROM order_items
-            GROUP BY product_id
-        ) as oi'), 'p.id', '=', 'oi.product_id')
-        ->groupBy('p.category_id', 'p.product_name')
-        ->orderByDesc('max_revenue')
-        ->toRawSql();
-    dd($products);
-    // 9.Truy vấn thông tin chi tiết về các đơn hàng có giá trị lớn hơn mức trung bình
-    $query = DB::table('orders')
-        ->join('users', 'users.id', '=', 'orders.user_id')
-        ->join('order_items', 'orders.id', '=', 'order_items.order_id')
-        ->select('orders.id', 'users.name', 'orders.order_date', DB::raw('SUM(order_items.quantity * order_items.price) AS total_value'))
-        ->groupBy('orders.id', 'users.name', 'orders.order_date')
-        ->having('total_value', '>', function ($query) {
-            $query->select(DB::raw('AVG(total)'))
-                ->from(DB::raw('(SELECT SUM(quantity * price) AS total FROM order_items GROUP BY order_id) AS avg_order_value'));
-        });
+    // // 2. Truy vấn thống kê dựa trên khoảng thời gian (Time-based statistics)
+    // $orders = DB::table('orders')
+    //     ->select('DATE(order_date) as date', 'COUNT(*) as orders_count', 'SUM(total_amount) as total_sales')
+    //     ->whereBetween('order_date', ['2024-01-01', '2024-09-30'])
+    //     ->groupBy('DATE(order_date)')
+    //     ->toRawSql();
+    // dd($orders);
+    // // 3. Truy vấn để tìm kiếm giá trị không có trong tập kết quả khác (NOT EXISTS)
+    // $products = DB::table('products', 'p')
+    //     ->select('product_name')
+    //     ->whereNotExists(function (Builder $query) {
+    //         $query->select('1')
+    //             ->from('orders', 'o')
+    //             ->where('o.product_id', '=', 'p.id');
+    //     })->toRawSql();
+    // dd($products);
+    // // 4. Truy vấn với CTE (Common Table Expression) em không làm được ạ
+    // // 5. Truy vấn lấy danh sách người dùng đã mua sản phẩm trong 30 ngày qua, cùng với thông tin sản phẩm và ngày mua
+    // $users = DB::table('users')
+    //     ->select('users.name', 'products.product_name', 'orders.order_date')
+    //     ->join('orders', 'users.id', '=', 'orders.user_id')
+    //     ->join('order_items', 'orders.id', '=', 'order_items.order_id')
+    //     ->join('products', 'order_items.product_id', '=', 'products.id')
+    //     ->where('orders.order_day', '>=',  DB::raw('NOW() - INTERVAL 30 DAY'))
+    //     ->toRawSql();
+    // dd($users);
+    // //6. Truy vấn lấy tổng doanh thu theo từng tháng, chỉ tính những đơn hàng đã hoàn thành  
+    // $orders = DB::table('orders')
+    //     ->select(DB::raw("DATE_FORMAT(orders.order_date, '%Y-%m') as order_month"), DB::raw('order_items.quantity * order_items.price as total_revenue'))
+    //     ->join('order_items', 'orders.id', '=', 'order_items.order_id')
+    //     ->where('orders.status', 'completed')
+    //     ->groupBy('order_month')
+    //     ->orderByDesc('order_moth')
+    //     ->toRawSql();
+    // dd($orders);
+    // // 7. Truy vấn các sản phẩm chưa từng được bán (sản phẩm không có trong bảng order_items)
+    // $products = DB::table('products')
+    //     ->select('products.product_name')
+    //     ->leftJoin('order_items', 'products.id', '=', 'order_items.product_id')
+    //     ->whereNull('order_items.product_id')
+    //     ->toRawSql();
+    // dd($products);
+    // // 8.Lấy danh sách các sản phẩm có doanh thu cao nhất cho mỗi loại sản phẩm
+    // $products = DB::table('products', 'p')
+    //     ->select('p.category_id', 'p.product_name', DB::raw("MAX(oi.total) as max_revenue"))
+    //     ->join(DB::raw('(
+    //         SELECT product_id, SUM(quantity * price) as total
+    //         FROM order_items
+    //         GROUP BY product_id
+    //     ) as oi'), 'p.id', '=', 'oi.product_id')
+    //     ->groupBy('p.category_id', 'p.product_name')
+    //     ->orderByDesc('max_revenue')
+    //     ->toRawSql();
+    // dd($products);
+    // // 9.Truy vấn thông tin chi tiết về các đơn hàng có giá trị lớn hơn mức trung bình
+    // $query = DB::table('orders')
+    //     ->join('users', 'users.id', '=', 'orders.user_id')
+    //     ->join('order_items', 'orders.id', '=', 'order_items.order_id')
+    //     ->select('orders.id', 'users.name', 'orders.order_date', DB::raw('SUM(order_items.quantity * order_items.price) AS total_value'))
+    //     ->groupBy('orders.id', 'users.name', 'orders.order_date')
+    //     ->having('total_value', '>', function ($query) {
+    //         $query->select(DB::raw('AVG(total)'))
+    //             ->from(DB::raw('(SELECT SUM(quantity * price) AS total FROM order_items GROUP BY order_id) AS avg_order_value'));
+    //     });
 
-    // In ra câu truy vấn SQL
-    dd($query->toSql());
-    // 10.Truy vấn tìm tất cả các sản phẩm có doanh số cao nhất trong từng danh mục (category)
-    $products = DB::table('products as p')
-        ->join('order_items as oi', 'p.id', '=', 'oi.product_id')
-        ->select('p.category_id', 'p.product_name', DB::raw('SUM(oi.quantity) AS total_sold'))
-        ->groupBy('p.category_id', 'p.product_name')
-        ->having('total_sold', '=', function ($subQuery) {
-            $subQuery->select(DB::raw('MAX(sub.total_sold)'))
-                ->from(DB::raw('(SELECT product_name, SUM(quantity) AS total_sold 
-                             FROM order_items 
-                             JOIN products ON order_items.product_id = products.id 
-                             GROUP BY product_name) as sub'));
-        });
+    // // In ra câu truy vấn SQL
+    // dd($query->toSql());
+    // // 10.Truy vấn tìm tất cả các sản phẩm có doanh số cao nhất trong từng danh mục (category)
+    // $products = DB::table('products as p')
+    //     ->join('order_items as oi', 'p.id', '=', 'oi.product_id')
+    //     ->select('p.category_id', 'p.product_name', DB::raw('SUM(oi.quantity) AS total_sold'))
+    //     ->groupBy('p.category_id', 'p.product_name')
+    //     ->having('total_sold', '=', function ($subQuery) {
+    //         $subQuery->select(DB::raw('MAX(sub.total_sold)'))
+    //             ->from(DB::raw('(SELECT product_name, SUM(quantity) AS total_sold 
+    //                          FROM order_items 
+    //                          JOIN products ON order_items.product_id = products.id 
+    //                          GROUP BY product_name) as sub'));
+    //     });
 
-    dd($products->toSql());
+    // dd($products->toSql());
     // PHẦN 2: TÌM HIỂU VỀ ELOQUENT
 
     //1) Eloquent ORM là gì trong Laravel? 
