@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Flight;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
+
 
     //bài tập PHẦN 1: Chuyển đổi câu SQL về Query Builder or Eloquent 
     //1 .Truy vấn kết hợp nhiều bảng (JOIN)
